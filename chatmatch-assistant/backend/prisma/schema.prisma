@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  telegramId  String   @unique @map("telegram_id")
+  username    String?
+  firstName   String?  @map("first_name")
+  lastName    String?  @map("last_name")
+  photoUrl    String?  @map("photo_url")
+  authDate    DateTime @map("auth_date")
+  hash        String
+  
+  // Subscription info
+  subscriptionActive Boolean   @default(false) @map("subscription_active")
+  subscriptionType   String    @default("free") @map("subscription_type") // "free" | "pro"
+  expiresAt          DateTime? @map("expires_at")
+  stripeCustomerId   String?   @unique @map("stripe_customer_id")
+  
+  // Usage tracking
+  dailyGenerations   Int @default(0) @map("daily_generations")
+  monthlyGenerations Int @default(0) @map("monthly_generations")
+  lastResetDate      DateTime @default(now()) @map("last_reset_date")
+  
+  // Relations
+  generations Generation[]
+  payments    Payment[]
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  @@map("users")
+}
+
+model Generation {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Chat context
+  chatMessages Json    @map("chat_messages") // Array of messages
+  tone         String  // "flirt", "friendly", "serious"
+  
+  // Generated responses
+  responses    Json    // Array of 3 generated responses
+  selectedResponse String? @map("selected_response")
+  
+  // Metadata
+  tokensUsed   Int     @default(0) @map("tokens_used")
+  model        String  @default("gpt-3.5-turbo")
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  @@map("generations")
+}
+
+model Payment {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Payment info
+  amount      Int      // Amount in cents
+  currency    String   @default("rub")
+  provider    String   // "stripe" | "telegram_stars"
+  
+  // External IDs
+  stripePaymentIntentId String? @unique @map("stripe_payment_intent_id")
+  telegramStarsId       String? @unique @map("telegram_stars_id")
+  
+  // Status
+  status      String   @default("pending") // "pending" | "succeeded" | "failed" | "refunded"
+  
+  // Subscription details
+  subscriptionType   String   @map("subscription_type") // "pro"
+  subscriptionPeriod String   @map("subscription_period") // "month"
+  expiresAt          DateTime @map("expires_at")
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  @@map("payments")
+}
+
+model WebAppSession {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  
+  // Telegram WebApp data
+  initData    Json     @map("init_data")
+  queryId     String?  @map("query_id")
+  chatType    String?  @map("chat_type")
+  chatInstance String? @map("chat_instance")
+  
+  // Session info
+  isActive    Boolean  @default(true) @map("is_active")
+  lastActivity DateTime @default(now()) @map("last_activity")
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  @@map("webapp_sessions")
+}

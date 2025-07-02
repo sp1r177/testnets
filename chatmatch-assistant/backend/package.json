@@ -1,0 +1,57 @@
+{
+  "name": "chatmatch-assistant-backend",
+  "version": "1.0.0",
+  "description": "Backend for ChatMatch Assistant - AI-powered chat continuation service",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "jest",
+    "migrate": "npx prisma migrate dev",
+    "db:push": "npx prisma db push",
+    "db:studio": "npx prisma studio",
+    "db:generate": "npx prisma generate"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "dotenv": "^16.3.1",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "express-rate-limit": "^7.1.5",
+    "express-validator": "^7.0.1",
+    "openai": "^4.20.1",
+    "stripe": "^14.9.0",
+    "crypto": "^1.0.1",
+    "prisma": "^5.7.1",
+    "@prisma/client": "^5.7.1",
+    "axios": "^1.6.2",
+    "node-telegram-bot-api": "^0.63.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20.10.5",
+    "@types/node-telegram-bot-api": "^0.61.7",
+    "typescript": "^5.3.3",
+    "tsx": "^4.6.2",
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.8"
+  },
+  "keywords": [
+    "telegram",
+    "webapp",
+    "chat",
+    "ai",
+    "openai",
+    "stripe",
+    "nodejs",
+    "typescript"
+  ],
+  "author": "ChatMatch Assistant Team",
+  "license": "MIT"
+}
