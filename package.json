@@ -1,0 +1,47 @@
+{
+  "name": "fitness-30-days-webapp",
+  "version": "1.0.0",
+  "description": "Фитнес WebApp для Telegram - Прокачай тело за 30 дней",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve . -p 3000",
+    "dev": "npx live-server --port=3000 --open=/",
+    "build": "echo 'Build script - готово для деплоя'",
+    "deploy": "echo 'Deploy script - загрузить на хостинг'",
+    "test": "echo 'Test script - запустить тесты'"
+  },
+  "keywords": [
+    "fitness",
+    "telegram",
+    "webapp",
+    "challenge",
+    "workout",
+    "30days",
+    "gamification",
+    "ai",
+    "health"
+  ],
+  "author": "Fitness Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/fitness-30-days-webapp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/fitness-30-days-webapp/issues"
+  },
+  "homepage": "https://your-username.github.io/fitness-30-days-webapp",
+  "devDependencies": {
+    "live-server": "^1.2.2",
+    "serve": "^14.2.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ]
+}
