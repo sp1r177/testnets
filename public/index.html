@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Разбор - Telegram WebApp</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Главный экран -->
+        <div id="main-screen" class="screen active">
+            <div class="header">
+                <h1>🔍 Разбор</h1>
+                <p>Пройдите тест и получите персональный анализ</p>
+            </div>
+            
+            <div class="start-section">
+                <button id="start-btn" class="btn btn-primary">
+                    Начать разбор
+                </button>
+            </div>
+        </div>
+
+        <!-- Экран с вопросами -->
+        <div id="questions-screen" class="screen">
+            <div class="progress-bar">
+                <div id="progress" class="progress-fill"></div>
+            </div>
+            
+            <div class="question-header">
+                <span id="question-counter">1 из 10</span>
+            </div>
+            
+            <div id="question-container">
+                <h2 id="question-text">Загрузка вопроса...</h2>
+                <div id="answers-container">
+                    <!-- Варианты ответов будут добавлены динамически -->
+                </div>
+            </div>
+            
+            <div class="navigation">
+                <button id="prev-btn" class="btn btn-secondary" disabled>
+                    ← Назад
+                </button>
+                <button id="next-btn" class="btn btn-primary" disabled>
+                    Далее →
+                </button>
+            </div>
+        </div>
+
+        <!-- Экран загрузки результата -->
+        <div id="loading-screen" class="screen">
+            <div class="loading-content">
+                <div class="spinner"></div>
+                <h2>Анализируем ваши ответы...</h2>
+                <p>Пожалуйста, подождите</p>
+            </div>
+        </div>
+
+        <!-- Экран с результатом -->
+        <div id="result-screen" class="screen">
+            <div class="result-header">
+                <h1>🎯 Ваш результат</h1>
+            </div>
+            
+            <div id="result-content">
+                <!-- Результат будет добавлен динамически -->
+            </div>
+            
+            <div class="result-actions">
+                <button id="restart-btn" class="btn btn-secondary">
+                    Пройти снова
+                </button>
+                <button id="share-btn" class="btn btn-primary">
+                    Поделиться
+                </button>
+            </div>
+        </div>
+
+        <!-- Экран ошибки -->
+        <div id="error-screen" class="screen">
+            <div class="error-content">
+                <h2>😔 Произошла ошибка</h2>
+                <p id="error-message">Что-то пошло не так. Попробуйте ещё раз.</p>
+                <button id="retry-btn" class="btn btn-primary">
+                    Попробовать снова
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating action button (если нужна) -->
+    <div id="fab" class="fab hidden">
+        <button id="fab-btn">💬</button>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
