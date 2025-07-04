@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const axios = require('axios');
 require('dotenv').config();
 
 const db = require('./database/db');
@@ -59,15 +60,35 @@ app.post('/webhook', express.json(), (req, res) => {
 });
 
 // Обработка сообщений
-function handleMessage(message) {
+async function handleMessage(message) {
   const chatId = message.chat.id;
   const text = message.text;
   
   if (text === '/start') {
     sendWelcomeMessage(chatId);
   } else if (text.startsWith('/start ref_')) {
-    const referrerId = text.split('ref_')[1];
-    sendWelcomeMessage(chatId, referrerId);
+    const referralCode = text.split('ref_')[1];
+    
+    // Проверяем, является ли это числовым ID (старая система) или кодом (новая система)
+    if (/^\d+$/.test(referralCode)) {
+      // Старая система - числовой ID
+      sendWelcomeMessage(chatId, referralCode, 'id');
+    } else {
+      // Новая система - буквенно-цифровой код
+      try {
+        // Отслеживаем клик
+        await fetch(`${process.env.WEBAPP_URL || 'http://localhost:3000'}/api/referral/track-click`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: referralCode })
+        });
+        
+        sendWelcomeMessage(chatId, referralCode, 'code');
+      } catch (error) {
+        console.error('Error tracking referral click:', error);
+        sendWelcomeMessage(chatId, referralCode, 'code');
+      }
+    }
   }
 }
 
@@ -78,20 +99,29 @@ function handleCallbackQuery(callbackQuery) {
 }
 
 // Отправка приветственного сообщения
-async function sendWelcomeMessage(chatId, referrerId = null) {
+async function sendWelcomeMessage(chatId, referralParam = null, referralType = null) {
   const axios = require('axios');
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  
+  let refParam = '';
+  if (referralParam) {
+    if (referralType === 'code') {
+      refParam = `?refCode=${referralParam}`;
+    } else {
+      refParam = `?ref=${referralParam}`;
+    }
+  }
   
   const keyboard = {
     inline_keyboard: [[
       {
         text: "🧠 Узнать свой архетип в отношениях",
-        web_app: { url: `${process.env.WEBAPP_URL}/app${referrerId ? `?ref=${referrerId}` : ''}` }
+        web_app: { url: `${process.env.WEBAPP_URL}/app${refParam}` }
       }
     ]]
   };
   
-  const message = `🎯 *Добро пожаловать в AI-анализ отношений!*
+  let message = `🎯 *Добро пожаловать в AI-анализ отношений!*
 
 Узнай свой архетип в любви за 2 минуты.
 
@@ -101,6 +131,11 @@ async function sendWelcomeMessage(chatId, referrerId = null) {
 • Рекомендации для улучшения отношений
 
 🎁 *Первый анализ — бесплатно!*`;
+
+  // Добавляем персонализированное сообщение для рефералов
+  if (referralParam) {
+    message += `\n\n💝 *Тебя пригласил друг!* Получи эксклюзивный анализ по специальной ссылке.`;
+  }
 
   try {
     await axios.post(`https://api.telegram.org/bot${botToken}/sendMessage`, {

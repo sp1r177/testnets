@@ -28,9 +28,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Получаем параметры запуска
     const urlParams = new URLSearchParams(window.location.search);
     const referrerId = urlParams.get('ref');
+    const referralCode = urlParams.get('refCode');
     
     // Авторизация пользователя
-    await authenticateUser(referrerId);
+    await authenticateUser(referrerId, referralCode);
     
     // Привязываем события
     bindEvents();
@@ -62,11 +63,25 @@ function applyTelegramTheme() {
 }
 
 // Авторизация пользователя
-async function authenticateUser(referrerId = null) {
+async function authenticateUser(referrerId = null, referralCode = null) {
     try {
         showLoader('Авторизация...');
         
         const initData = tg.initData || 'user=%7B%22id%22%3A123456789%2C%22first_name%22%3A%22Test%22%2C%22username%22%3A%22testuser%22%7D';
+        
+        // Если есть реферальный код, получаем информацию о нём
+        let actualReferrerId = referrerId;
+        if (referralCode) {
+            try {
+                const codeResponse = await fetch(`${API_BASE}/referral/code/${referralCode}`);
+                if (codeResponse.ok) {
+                    const codeData = await codeResponse.json();
+                    actualReferrerId = codeData.referrer.id;
+                }
+            } catch (error) {
+                console.error('Error getting referral code info:', error);
+            }
+        }
         
         const response = await fetch(`${API_BASE}/auth/telegram`, {
             method: 'POST',
@@ -75,7 +90,8 @@ async function authenticateUser(referrerId = null) {
             },
             body: JSON.stringify({
                 initData: initData,
-                referrerId: referrerId
+                referrerId: actualReferrerId,
+                referralCode: referralCode
             })
         });
         

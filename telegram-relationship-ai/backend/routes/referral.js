@@ -65,11 +65,22 @@ router.get('/link/:userId', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
     
-    const referralLink = `https://t.me/${process.env.BOT_USERNAME || 'your_bot'}?start=ref_${user.id}`;
+    // Получаем или создаем уникальный реферальный код
+    let referralCode = await db.referralCodes.getUserReferralCode(user.id);
+    if (!referralCode) {
+      referralCode = await db.referralCodes.createReferralCode(user.id);
+    }
+    
+    const referralLink = `https://t.me/${process.env.BOT_USERNAME || 'your_bot'}?start=ref_${referralCode.code}`;
     
     res.json({
       success: true,
+      referral_code: referralCode.code,
       referral_link: referralLink,
+      stats: {
+        clicks: referralCode.clicks,
+        successful_referrals: referralCode.successful_referrals
+      },
       share_text: `🧠 Узнай свой архетип в отношениях!
 
 Пройди бесплатный AI-анализ и получи персональные рекомендации для улучшения отношений.
@@ -81,6 +92,61 @@ ${referralLink}`
     
   } catch (error) {
     console.error('Referral link error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Отслеживание клика по реферальной ссылке
+router.post('/track-click', async (req, res) => {
+  try {
+    const { code } = req.body;
+    
+    if (!code) {
+      return res.status(400).json({ error: 'Missing referral code' });
+    }
+    
+    // Увеличиваем счетчик кликов
+    await db.referralCodes.incrementClicks(code);
+    
+    res.json({
+      success: true,
+      message: 'Click tracked'
+    });
+    
+  } catch (error) {
+    console.error('Track click error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Получение информации о реферальном коде
+router.get('/code/:code', async (req, res) => {
+  try {
+    const { code } = req.params;
+    
+    const referralData = await db.referralCodes.getUserByReferralCode(code);
+    
+    if (!referralData) {
+      return res.status(404).json({ error: 'Referral code not found' });
+    }
+    
+    res.json({
+      success: true,
+      referrer: {
+        id: referralData.user_id,
+        telegram_id: referralData.telegram_id,
+        first_name: referralData.first_name,
+        username: referralData.username
+      },
+      code_stats: {
+        clicks: referralData.clicks,
+        successful_referrals: referralData.successful_referrals,
+        created_at: referralData.created_at
+      }
+    });
+    
+  } catch (error) {
+    console.error('Get referral code error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

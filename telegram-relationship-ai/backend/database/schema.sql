@@ -145,9 +145,24 @@ INSERT OR IGNORE INTO archetypes (id, name, short_description, full_description,
     '["Неопределённость", "Непостоянство", "Страх выбора", "Поиск идеала"]',
     '["Изучай себя", "Не торопись с выбором", "Пробуй разные типы отношений", "Работай над самопониманием"]');
 
+-- Таблица уникальных реферальных кодов
+CREATE TABLE IF NOT EXISTS referral_codes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    code TEXT UNIQUE NOT NULL,
+    clicks INTEGER DEFAULT 0,
+    successful_referrals INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    expires_at DATETIME,
+    is_active INTEGER DEFAULT 1,
+    FOREIGN KEY (user_id) REFERENCES users (id)
+);
+
 -- Индексы для оптимизации
 CREATE INDEX IF NOT EXISTS idx_users_telegram_id ON users(telegram_id);
 CREATE INDEX IF NOT EXISTS idx_answers_user_id ON answers(user_id);
 CREATE INDEX IF NOT EXISTS idx_results_user_id ON results(user_id);
 CREATE INDEX IF NOT EXISTS idx_payments_user_id ON payments(user_id);
 CREATE INDEX IF NOT EXISTS idx_referrals_referrer_id ON referrals(referrer_id);
+CREATE INDEX IF NOT EXISTS idx_referral_codes_code ON referral_codes(code);
+CREATE INDEX IF NOT EXISTS idx_referral_codes_user_id ON referral_codes(user_id);

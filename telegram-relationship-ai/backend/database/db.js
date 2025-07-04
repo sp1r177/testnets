@@ -297,6 +297,138 @@ const referralQueries = {
   }
 };
 
+// Функции для работы с реферальными кодами
+const referralCodeQueries = {
+  // Генерация уникального кода
+  generateUniqueCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < 8; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  },
+
+  // Создание реферального кода для пользователя
+  async createReferralCode(userId) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // Проверяем, есть ли уже активный код
+        const existingCode = await this.getUserReferralCode(userId);
+        if (existingCode) {
+          resolve(existingCode);
+          return;
+        }
+
+        // Генерируем уникальный код
+        let code;
+        let isUnique = false;
+        let attempts = 0;
+        
+        while (!isUnique && attempts < 10) {
+          code = this.generateUniqueCode();
+          
+          // Проверяем уникальность
+          db.get('SELECT id FROM referral_codes WHERE code = ?', [code], (err, row) => {
+            if (err) {
+              reject(err);
+              return;
+            }
+            if (!row) {
+              isUnique = true;
+            }
+          });
+          attempts++;
+        }
+
+        if (!isUnique) {
+          reject(new Error('Failed to generate unique code'));
+          return;
+        }
+
+        // Создаем запись
+        const query = `
+          INSERT INTO referral_codes (user_id, code) 
+          VALUES (?, ?)
+        `;
+        
+        db.run(query, [userId, code], function(err) {
+          if (err) {
+            reject(err);
+          } else {
+            resolve({
+              id: this.lastID,
+              code: code,
+              user_id: userId,
+              clicks: 0,
+              successful_referrals: 0
+            });
+          }
+        });
+        
+      } catch (error) {
+        reject(error);
+      }
+    });
+  },
+
+  // Получение реферального кода пользователя
+  async getUserReferralCode(userId) {
+    return new Promise((resolve, reject) => {
+      db.get(
+        'SELECT * FROM referral_codes WHERE user_id = ? AND is_active = 1 ORDER BY created_at DESC LIMIT 1',
+        [userId],
+        (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        }
+      );
+    });
+  },
+
+  // Поиск пользователя по реферальному коду
+  async getUserByReferralCode(code) {
+    return new Promise((resolve, reject) => {
+      db.get(
+        'SELECT rc.*, u.* FROM referral_codes rc JOIN users u ON rc.user_id = u.id WHERE rc.code = ? AND rc.is_active = 1',
+        [code],
+        (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        }
+      );
+    });
+  },
+
+  // Увеличение счетчика кликов
+  async incrementClicks(code) {
+    return new Promise((resolve, reject) => {
+      db.run(
+        'UPDATE referral_codes SET clicks = clicks + 1 WHERE code = ?',
+        [code],
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
+    });
+  },
+
+  // Увеличение счетчика успешных рефералов
+  async incrementSuccessfulReferrals(code) {
+    return new Promise((resolve, reject) => {
+      db.run(
+        'UPDATE referral_codes SET successful_referrals = successful_referrals + 1 WHERE code = ?',
+        [code],
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
+    });
+  }
+};
+
 module.exports = {
   initDatabase,
   getDB,
@@ -306,5 +438,6 @@ module.exports = {
   results: resultQueries,
   archetypes: archetypeQueries,
   payments: paymentQueries,
-  referrals: referralQueries
+  referrals: referralQueries,
+  referralCodes: referralCodeQueries
 };
