@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>AI Анализ Отношений</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Главный экран -->
+        <div id="home-screen" class="screen active">
+            <div class="mobile-container">
+                <!-- Заголовок с иконкой -->
+                <div class="hero-section">
+                    <div class="brain-icon">🧠</div>
+                    <h1 class="main-title">AI-анализ отношений</h1>
+                    <p class="main-subtitle">Пройди короткий тест и получи персональный разбор</p>
+                </div>
+
+                <!-- Статистика -->
+                <div class="stats-cards">
+                    <div class="stat-card">
+                        <div class="stat-number">7</div>
+                        <div class="stat-label">вопросов</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">2</div>
+                        <div class="stat-label">минуты</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">4</div>
+                        <div class="stat-label">архетипа</div>
+                    </div>
+                </div>
+
+                <!-- Основная кнопка -->
+                <div class="action-section">
+                    <button id="start-test-btn" class="primary-button">
+                        <span class="button-text">Начать анализ</span>
+                        <span class="button-icon">→</span>
+                    </button>
+                    
+                    <button id="view-result-btn" class="secondary-button" style="display: none;">
+                        <span class="button-text">Мой результат</span>
+                        <span class="button-icon">📊</span>
+                    </button>
+                </div>
+
+                <!-- Дополнительные действия -->
+                <div class="secondary-actions">
+                    <button id="profile-btn" class="text-button">
+                        👤 Профиль
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Экран теста -->
+        <div id="test-screen" class="screen">
+            <div class="mobile-container">
+                <!-- Прогресс -->
+                <div class="progress-section">
+                    <div class="progress-bar">
+                        <div id="progress" class="progress-fill"></div>
+                    </div>
+                    <div class="progress-info">
+                        <span id="progress-text">1 / 7</span>
+                        <span class="progress-label">вопросов</span>
+                    </div>
+                </div>
+                
+                <!-- Вопрос -->
+                <div class="question-section">
+                    <h2 id="question-text" class="question-title"></h2>
+                    <div id="question-options" class="answer-options"></div>
+                </div>
+
+                <!-- Навигация -->
+                <div class="navigation-section">
+                    <button id="prev-btn" class="nav-button nav-button-back" disabled>
+                        ← Назад
+                    </button>
+                    <button id="next-btn" class="nav-button nav-button-next" disabled>
+                        Далее →
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Экран результата -->
+        <div id="result-screen" class="screen">
+            <div class="mobile-container">
+                <!-- Результат -->
+                <div class="result-section">
+                    <div class="result-icon">🎭</div>
+                    <h1 id="archetype-name" class="result-title"></h1>
+                    <p id="archetype-description" class="result-description"></p>
+                </div>
+
+                <!-- Детали результата -->
+                <div class="result-details">
+                    <div class="detail-card">
+                        <h3 class="detail-title">💪 Сильные стороны</h3>
+                        <ul id="strengths-list" class="detail-list"></ul>
+                    </div>
+
+                    <div class="detail-card">
+                        <h3 class="detail-title">⚡ Области роста</h3>
+                        <ul id="weaknesses-list" class="detail-list"></ul>
+                    </div>
+
+                    <div class="detail-card">
+                        <h3 class="detail-title">📋 Рекомендации</h3>
+                        <ul id="recommendations-list" class="detail-list"></ul>
+                    </div>
+                </div>
+
+                <!-- Действия -->
+                <div class="result-actions">
+                    <button id="share-result-btn" class="primary-button">
+                        <span class="button-text">Поделиться</span>
+                        <span class="button-icon">📤</span>
+                    </button>
+                    
+                    <button id="get-premium-btn" class="premium-button">
+                        <span class="button-text">Получить полный анализ</span>
+                        <span class="button-icon">⭐</span>
+                    </button>
+
+                    <button id="home-btn" class="text-button">
+                        🏠 На главную
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Экран покупки -->
+        <div id="purchase-screen" class="screen">
+            <div class="mobile-container">
+                <div class="purchase-header">
+                    <h1 class="section-title">Выбери свой план</h1>
+                    <p class="section-subtitle">Получи глубокий анализ и персональные рекомендации</p>
+                </div>
+
+                <div class="products-section" id="products-list">
+                    <!-- Продукты загружаются динамически -->
+                </div>
+
+                <div class="back-section">
+                    <button id="back-to-result-btn" class="text-button">
+                        ← Назад к результату
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Экран профиля -->
+        <div id="profile-screen" class="screen">
+            <div class="mobile-container">
+                <!-- Профиль пользователя -->
+                <div class="profile-section">
+                    <div class="avatar-section">
+                        <div class="avatar">👤</div>
+                        <h1 id="profile-name" class="profile-name"></h1>
+                        <div class="subscription-status" id="subscription-badge">Free</div>
+                    </div>
+                </div>
+
+                <!-- Статистика -->
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="total-referrals">0</div>
+                        <div class="stat-label">Приглашено</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="earned-stars">0</div>
+                        <div class="stat-label">Заработано ⭐</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="current-balance">0</div>
+                        <div class="stat-label">Баланс ⭐</div>
+                    </div>
+                </div>
+
+                <!-- Реферальная ссылка -->
+                <div class="referral-section">
+                    <h3 class="section-title">Реферальная ссылка</h3>
+                    <div class="link-container">
+                        <input type="text" id="referral-link" readonly class="link-input">
+                        <button id="copy-link-btn" class="copy-button">📋</button>
+                    </div>
+                    <p class="referral-note">Получай 50% с каждой покупки!</p>
+                </div>
+
+                <!-- Действия -->
+                <div class="profile-actions">
+                    <button id="share-referral-btn" class="primary-button">
+                        <span class="button-text">Пригласить друзей</span>
+                        <span class="button-icon">📢</span>
+                    </button>
+
+                    <div id="withdraw-section" style="display: none;">
+                        <button id="withdraw-btn" class="premium-button">
+                            <span class="button-text">Вывести заработок</span>
+                            <span class="button-icon">💰</span>
+                        </button>
+                    </div>
+
+                    <button id="profile-home-btn" class="text-button">
+                        🏠 На главную
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Лоадер -->
+        <div id="loader" class="loader">
+            <div class="loader-animation">
+                <div class="spinner"></div>
+                <div class="pulse-rings">
+                    <div class="pulse-ring"></div>
+                    <div class="pulse-ring"></div>
+                    <div class="pulse-ring"></div>
+                </div>
+            </div>
+            <p class="loader-text">Анализируем ваши ответы...</p>
+        </div>
+
+        <!-- Уведомления -->
+        <div id="notification" class="notification"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
