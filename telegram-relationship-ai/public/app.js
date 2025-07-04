@@ -419,11 +419,13 @@ function renderProducts() {
                 <div class="product-price">${product.price} ₽</div>
             </div>
             <div class="product-description">${product.description}</div>
-            <button class="btn-primary product-buy-btn" onclick="buyProduct('${key}')">
-                ⭐ Купить за ${product.stars_price} Stars
+            <button class="primary-button product-buy-btn" onclick="buyProduct('${key}')">
+                <span class="button-text">Купить за ${product.stars_price} Stars</span>
+                <span class="button-icon">⭐</span>
             </button>
-            <button class="btn-outline product-buy-btn" onclick="buyProductCrypto('${key}')" style="margin-top: 8px;">
-                💳 Купить за ${product.price} ₽
+            <button class="secondary-button product-buy-btn" onclick="buyProductCrypto('${key}')" style="margin-top: 8px;">
+                <span class="button-text">Купить за ${product.price} ₽</span>
+                <span class="button-icon">💳</span>
             </button>
         `;
         
@@ -609,7 +611,7 @@ async function withdrawEarnings() {
 // Утилиты
 function showLoader(text = 'Загрузка...') {
     const loader = document.getElementById('loader');
-    loader.querySelector('p').textContent = text;
+    loader.querySelector('.loader-text').textContent = text;
     loader.classList.add('active');
 }
 
