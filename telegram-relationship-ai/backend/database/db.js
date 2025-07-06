@@ -14,14 +14,53 @@ function initDatabase() {
     } else {
       console.log('📦 Connected to SQLite database');
       
-      // Выполняем SQL схему
+      // Выполняем основную SQL схему
       const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
       
       db.exec(schema, (err) => {
         if (err) {
           console.error('Error executing schema:', err);
         } else {
-          console.log('✅ Database schema initialized');
+          console.log('✅ Main database schema initialized');
+          
+          // Загружаем схему психологического теста
+          try {
+            const psychSchema = fs.readFileSync(path.join(__dirname, 'psychological_test_schema.sql'), 'utf8');
+            db.exec(psychSchema, (err) => {
+              if (err) {
+                console.error('Error executing psychological schema:', err);
+              } else {
+                console.log('✅ Psychological test schema initialized');
+                
+                // Загружаем фрагменты личности
+                try {
+                  const fragmentsSchema = fs.readFileSync(path.join(__dirname, 'personality_fragments.sql'), 'utf8');
+                  db.exec(fragmentsSchema, (err) => {
+                    if (err && !err.message.includes('UNIQUE constraint failed')) {
+                      console.error('Error loading personality fragments:', err);
+                    } else {
+                      console.log('✅ Personality fragments loaded');
+                    }
+                  });
+                  
+                  // Загружаем систему подсчета очков
+                  const scoringSchema = fs.readFileSync(path.join(__dirname, 'answer_scoring.sql'), 'utf8');
+                  db.exec(scoringSchema, (err) => {
+                    if (err && !err.message.includes('UNIQUE constraint failed')) {
+                      console.error('Error loading answer scoring:', err);
+                    } else {
+                      console.log('✅ Answer scoring system loaded');
+                    }
+                  });
+                  
+                } catch (fragmentsError) {
+                  console.error('Error reading fragments file:', fragmentsError);
+                }
+              }
+            });
+          } catch (psychError) {
+            console.error('Error reading psychological schema file:', psychError);
+          }
         }
       });
     }

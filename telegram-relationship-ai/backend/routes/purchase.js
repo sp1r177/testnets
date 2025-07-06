@@ -6,6 +6,12 @@ const router = express.Router();
 
 // Продукты для покупки
 const PRODUCTS = {
+  unlock_result: {
+    name: 'Полный психологический анализ',
+    price: 199, // рубли
+    stars_price: 199, // Stars
+    description: 'Разблокировка полного текста вашего психологического портрета'
+  },
   week_plan: {
     name: 'Личный AI-план на 7 дней',
     price: 149, // рубли
@@ -53,9 +59,25 @@ router.post('/create-invoice/stars', async (req, res) => {
     // Проверяем реферера для расчёта вознаграждения
     let referrerId = user.referrer_id;
     let referrerReward = 0;
+    let referrerPercentage = 0;
     
     if (referrerId) {
-      referrerReward = Math.floor(product.stars_price * 0.5); // 50% рефереру
+      // Проверяем, первая ли это покупка пользователя
+      const previousPurchases = await new Promise((resolve, reject) => {
+        const db_instance = db.getDB();
+        db_instance.get(
+          'SELECT COUNT(*) as count FROM payments WHERE user_id = ? AND status = "completed"',
+          [user.id],
+          (err, row) => {
+            if (err) reject(err);
+            else resolve(row.count);
+          }
+        );
+      });
+      
+      // 70% с первой покупки, 30% с последующих
+      referrerPercentage = previousPurchases === 0 ? 70 : 30;
+      referrerReward = Math.floor(product.stars_price * (referrerPercentage / 100));
     }
     
     // Создаем запись о платеже
@@ -123,9 +145,25 @@ router.post('/create-invoice/crypto', async (req, res) => {
     // Проверяем реферера
     let referrerId = user.referrer_id;
     let referrerReward = 0;
+    let referrerPercentage = 0;
     
     if (referrerId) {
-      referrerReward = Math.floor(product.price * 0.5);
+      // Проверяем, первая ли это покупка пользователя
+      const previousPurchases = await new Promise((resolve, reject) => {
+        const db_instance = db.getDB();
+        db_instance.get(
+          'SELECT COUNT(*) as count FROM payments WHERE user_id = ? AND status = "completed"',
+          [user.id],
+          (err, row) => {
+            if (err) reject(err);
+            else resolve(row.count);
+          }
+        );
+      });
+      
+      // 70% с первой покупки, 30% с последующих
+      referrerPercentage = previousPurchases === 0 ? 70 : 30;
+      referrerReward = Math.floor(product.price * (referrerPercentage / 100));
     }
     
     // Создаем запись о платеже
@@ -261,19 +299,28 @@ async function processSuccessfulPayment(paymentId) {
           return;
         }
         
-        // Обновляем подписку пользователя
-        const subscriptionMap = {
-          week_plan: 'week',
-          month_plan: 'month',
-          full_mentoring: 'premium'
-        };
-        
-        const subscriptionType = subscriptionMap[payment.product_type];
-        
-        db_instance.run(
-          'UPDATE users SET subscription_type = ? WHERE id = ?',
-          [subscriptionType, payment.user_id]
-        );
+        // Обрабатываем разные типы продуктов
+        if (payment.product_type === 'unlock_result') {
+          // Разблокируем психологический результат
+          db_instance.run(
+            'UPDATE psychological_results SET is_premium_unlocked = 1, unlock_payment_id = ? WHERE user_id = ?',
+            [payment.id, payment.user_id]
+          );
+        } else {
+          // Обновляем подписку пользователя для других продуктов
+          const subscriptionMap = {
+            week_plan: 'week',
+            month_plan: 'month',
+            full_mentoring: 'premium'
+          };
+          
+          const subscriptionType = subscriptionMap[payment.product_type];
+          
+          db_instance.run(
+            'UPDATE users SET subscription_type = ? WHERE id = ?',
+            [subscriptionType, payment.user_id]
+          );
+        }
         
         // Начисляем реферальное вознаграждение
         if (payment.referrer_id && payment.referrer_reward > 0) {

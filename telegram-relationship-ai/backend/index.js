@@ -13,6 +13,7 @@ const answerRoutes = require('./routes/answers');
 const resultRoutes = require('./routes/result');
 const purchaseRoutes = require('./routes/purchase');
 const referralRoutes = require('./routes/referral');
+const psychTestRoutes = require('./routes/psychological_test');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -36,10 +37,11 @@ app.use('/api/answers', answerRoutes);
 app.use('/api/result', resultRoutes);
 app.use('/api/purchase', purchaseRoutes);
 app.use('/api/referral', referralRoutes);
+app.use('/api/psychtest', psychTestRoutes);
 
 // Telegram WebApp route
 app.get('/app', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/index.html'));
+  res.sendFile(path.join(__dirname, '../public/psychological_test.html'));
 });
 
 // Webhook для Telegram бота
