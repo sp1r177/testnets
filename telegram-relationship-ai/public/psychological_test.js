@@ -325,8 +325,8 @@ function showResult(result) {
                 <div class="paywall">
                     <h3>🔓 Разблокируй полный анализ</h3>
                     <p>Узнай все детали своего психологического портрета</p>
-                    <div class="price-old">999₽</div>
-                    <div class="price">199₽</div>
+                    <div class="price-old">299₽</div>
+                    <div class="price">149₽</div>
                     <button class="btn btn-primary" onclick="purchaseFullResult()">
                         Получить полный анализ
                     </button>
@@ -351,91 +351,138 @@ function showResult(result) {
 
 // Покупка полного результата
 async function purchaseFullResult() {
+    if (!currentUser?.telegram_id) {
+        showError('Ошибка авторизации');
+        return;
+    }
+
     try {
         showLoading();
         
-        const response = await fetch(`${API_BASE}/purchase/create-invoice/stars`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                userId: currentUser.telegram_id,
-                productType: 'unlock_result'
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error('Failed to create payment');
-        }
-        
-        const data = await response.json();
-        
-        // Открываем платежную форму Telegram
-        if (tg.openInvoice) {
-            tg.openInvoice(data.invoice_url, (status) => {
-                if (status === 'paid') {
-                    // Платеж успешен, обновляем результат
-                    unlockFullResult(data.payment_id);
+        // Показываем подтверждение оплаты
+        if (tg.showPopup) {
+            tg.showPopup({
+                title: '💳 Оплата',
+                message: 'Разблокировать полный анализ за 149⭐?',
+                buttons: [
+                    {id: 'pay', type: 'default', text: 'Оплатить 149⭐'},
+                    {type: 'cancel'}
+                ]
+            }, (buttonId) => {
+                if (buttonId === 'pay') {
+                    createStarsInvoice();
                 } else {
-                    // Платеж отменен или неуспешен
                     showResult(testResult);
                 }
             });
         } else {
-            // Fallback для браузера
-            window.open(data.invoice_url, '_blank');
-            showResult(testResult);
+            createStarsInvoice();
         }
         
     } catch (error) {
-        console.error('Error creating payment:', error);
-        showError('Ошибка создания платежа');
+        console.error('Error initiating payment:', error);
+        showError('Ошибка при создании платежа');
         showResult(testResult);
     }
 }
 
-// Разблокировка полного результата
-async function unlockFullResult(paymentId) {
+// Создание invoice через Telegram Stars
+async function createStarsInvoice() {
     try {
-        const response = await fetch(`${API_BASE}/psychtest/unlock-result`, {
+        showLoading();
+        
+        const response = await fetch(`${API_BASE}/purchase/create`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                userId: currentUser.telegram_id,
-                paymentId: paymentId
+                product: 'unlock_result',
+                user_id: currentUser.telegram_id,
+                title: 'Полный психологический анализ',
+                description: 'Разблокировка детального анализа вашей личности',
+                payload: `unlock_result_${currentUser.telegram_id}_${Date.now()}`,
+                currency: 'XTR',
+                prices: [{label: 'Полный анализ', amount: 149}]
             })
         });
         
         if (!response.ok) {
-            throw new Error('Failed to unlock result');
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to create payment');
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Если платеж уже был совершен
+            if (data.already_purchased) {
+                await loadFullResult();
+                return;
+            }
+            
+            // Открываем invoice для оплаты
+            if (data.invoice_link && tg.openInvoice) {
+                tg.openInvoice(data.invoice_link, async (status) => {
+                    if (status === 'paid') {
+                        if (tg.showAlert) {
+                            tg.showAlert('✅ Платеж успешен! Загружаем полный анализ...');
+                        }
+                        await loadFullResult();
+                    } else if (status === 'cancelled') {
+                        showResult(testResult);
+                    } else if (status === 'failed') {
+                        showError('❌ Ошибка платежа. Попробуйте еще раз');
+                        showResult(testResult);
+                    }
+                });
+            } else {
+                throw new Error('Не удалось создать invoice');
+            }
+        } else {
+            throw new Error(data.error || 'Ошибка создания платежа');
+        }
+        
+    } catch (error) {
+        console.error('Error creating Stars invoice:', error);
+        showError('Ошибка при создании платежа');
+        showResult(testResult);
+    }
+}
+
+// Загрузка полного результата
+async function loadFullResult() {
+    try {
+        showLoading();
+        
+        const response = await fetch(`${API_BASE}/psychtest/result/${currentUser.telegram_id}`);
+        
+        if (!response.ok) {
+            throw new Error('Failed to load full result');
         }
         
         const data = await response.json();
         
         // Обновляем результат
-        testResult.is_premium_unlocked = true;
-        testResult.full_text = data.full_text;
+        testResult.is_premium_unlocked = data.result.is_premium_unlocked;
+        testResult.full_text = data.result.full_text;
         
         // Показываем обновленный результат
         showResult(testResult);
         
         // Показываем уведомление об успехе
-        if (tg.showPopup) {
-            tg.showPopup({
-                title: '🎉 Поздравляем!',
-                message: 'Полный психологический анализ разблокирован',
-                buttons: [{type: 'ok'}]
-            });
+        if (tg.showAlert) {
+            tg.showAlert('🎉 Полный анализ разблокирован!');
         }
         
     } catch (error) {
-        console.error('Error unlocking result:', error);
-        showError('Ошибка разблокировки результата');
+        console.error('Error loading full result:', error);
+        showError('Ошибка загрузки полного результата');
+        showResult(testResult);
     }
 }
+
+
 
 // Поделиться результатом
 function shareResult() {
@@ -463,8 +510,15 @@ ${window.location.origin}`;
 
 // Открыть профиль
 function openProfile() {
-    // Переходим на страницу профиля
-    window.location.href = '/app?page=profile';
+    if (tg.showPopup) {
+        tg.showPopup({
+            title: '👤 Профиль',
+            message: 'Ваш профиль пока в разработке. Скоро здесь будет статистика ваших тестов и реферальные ссылки!',
+            buttons: [{type: 'ok'}]
+        });
+    } else {
+        alert('Профиль пока в разработке');
+    }
 }
 
 // Показать ошибку

@@ -8,8 +8,8 @@ const router = express.Router();
 const PRODUCTS = {
   unlock_result: {
     name: 'Полный психологический анализ',
-    price: 199, // рубли
-    stars_price: 199, // Stars
+    price: 149, // рубли
+    stars_price: 149, // Stars
     description: 'Разблокировка полного текста вашего психологического портрета'
   },
   week_plan: {

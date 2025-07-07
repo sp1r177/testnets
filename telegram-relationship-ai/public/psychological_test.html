@@ -388,35 +388,39 @@
         /* Profile button */
         .profile-btn {
             position: fixed;
-            top: 20px;
+            bottom: 20px;
             right: 20px;
-            width: 44px;
-            height: 44px;
-            background: rgba(255, 255, 255, 0.9);
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             border: none;
             border-radius: 50%;
-            font-size: 20px;
+            color: white;
+            font-size: 24px;
             cursor: pointer;
             z-index: 1000;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 2px 12px var(--shadow);
+            box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3);
             transition: all 0.3s ease;
         }
 
         .profile-btn:hover {
             transform: scale(1.1);
-            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 6px 25px rgba(0, 122, 255, 0.4);
         }
 
         /* Intro screen */
         .intro-screen {
             text-align: center;
-            padding: 40px 20px;
+            padding: 20px 20px 100px 20px;
+            min-height: calc(100vh - 120px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         .intro-icon {
-            font-size: 80px;
-            margin-bottom: 24px;
+            font-size: 60px;
+            margin-bottom: 16px;
             animation: pulse 2s infinite;
         }
 
@@ -426,46 +430,63 @@
         }
 
         .intro-title {
-            font-size: 32px;
+            font-size: 26px;
             font-weight: 800;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            line-height: 1.2;
         }
 
         .intro-subtitle {
-            font-size: 18px;
+            font-size: 16px;
             color: var(--text-secondary);
-            margin-bottom: 32px;
+            margin-bottom: 20px;
             line-height: 1.4;
+        }
+
+        .pain-points {
+            margin-bottom: 20px;
+        }
+
+        .pain-item {
+            background: rgba(255, 59, 48, 0.1);
+            border: 1px solid rgba(255, 59, 48, 0.2);
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-bottom: 6px;
+            font-size: 14px;
+            color: var(--danger-color);
+            font-weight: 500;
+            text-align: left;
         }
 
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            margin-bottom: 32px;
+            gap: 12px;
+            margin-bottom: 24px;
         }
 
         .stat-card {
             background: var(--surface);
-            border-radius: 12px;
-            padding: 16px;
+            border-radius: 10px;
+            padding: 12px;
             text-align: center;
             box-shadow: 0 2px 8px var(--shadow);
         }
 
         .stat-number {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 700;
             color: var(--primary-color);
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
 
         .stat-label {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-secondary);
             font-weight: 500;
         }
@@ -486,10 +507,17 @@
         <div class="main">
             <!-- Intro Screen -->
             <div id="intro-screen" class="intro-screen">
-                <div class="intro-icon">🧠</div>
-                <h2 class="intro-title">AI-анализ отношений</h2>
-                <p class="intro-subtitle">Пройди короткий тест и получи персональный разбор</p>
+                <div class="intro-icon">💔</div>
+                <h2 class="intro-title">Почему твоя любовь не приходит?</h2>
+                <p class="intro-subtitle">Узнай, что блокирует твоё счастье в отношениях. Честный AI-разбор твоих внутренних барьеров</p>
                 
+                <div class="pain-points">
+                    <div class="pain-item">😔 Притягиваешь не тех людей?</div>
+                    <div class="pain-item">💔 Отношения постоянно рушатся?</div>
+                    <div class="pain-item">😰 Боишься открыться и быть собой?</div>
+                    <div class="pain-item">🔒 Чувствуешь себя недостойным любви?</div>
+                </div>
+
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-number">15</div>
@@ -500,13 +528,13 @@
                         <div class="stat-label">минут</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number">8</div>
-                        <div class="stat-label">шкал</div>
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">честности</div>
                     </div>
                 </div>
 
                 <button class="btn btn-primary" onclick="startTest()">
-                    Начать анализ →
+                    Узнать правду о себе →
                 </button>
             </div>
 
